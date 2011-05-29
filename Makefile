@@ -12,7 +12,7 @@ CYOUT=		${CYSRC:S/.pyx/.c/g}
 # python libraries
 CC?=		cc
 
-CFLAGS=		-fPIC
+CFLAGS=		-g -fPIC
 
 PATHS=	${ELFTOOLCHAIN}			\
 	${ELFTOOLCHAIN}/common		\
