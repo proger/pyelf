@@ -15,6 +15,9 @@
 from libc.stdint cimport *
 from libelf cimport *
 
+cdef extern from *:
+    ctypedef char * const_char_ptr "const char *"
+
 cdef extern from "libdwarf/libdwarf.h":
     ctypedef void *Dwarf_Debug
     ctypedef void *Dwarf_Handler    # actually a function pointer
@@ -35,6 +38,8 @@ cdef extern from "libdwarf/libdwarf.h":
         char *err_func
         int err_line
         char err_msg[1024]
+
+    const_char_ptr _dwarf_errmsg(Dwarf_Error *)
 
     # access modes
     cdef enum:
@@ -59,13 +64,24 @@ cdef extern from "libdwarf/libdwarf.h":
         DW_DLV_NOCOUNT = -1
 
     int dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *err)
-    int dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *err)
-
-    int dwarf_offdie(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Die *ret_die, Dwarf_Error *err)
+    int dwarf_siblingof(Dwarf_Debug dbg,
+            Dwarf_Die die, Dwarf_Die *ret_die,
+            Dwarf_Error *err)
 
     int dwarf_next_cu_header_b(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
             Dwarf_Half *cu_version, Dwarf_Off *cu_abbrev_offset,
             Dwarf_Half *cu_pointer_size, Dwarf_Half *cu_offset_size,
             Dwarf_Half *cu_extension_size, Dwarf_Unsigned *cu_next_offset,
             Dwarf_Error *err)
+
+    int dwarf_diename(Dwarf_Die, char **, Dwarf_Error *)
+
+    int dwarf_tag(Dwarf_Die, Dwarf_Half *, Dwarf_Error *)
+    int dwarf_get_TAG_name(unsigned, const_char_ptr *)
+
+    # offset by die
+    int dwarf_dieoffset(Dwarf_Die, Dwarf_Off *, Dwarf_Error *)
+
+    # die by offset
+    int dwarf_offdie(Dwarf_Debug, Dwarf_Off, Dwarf_Die *, Dwarf_Error *)
 
