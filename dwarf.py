@@ -44,6 +44,7 @@ class Type(DwarfObject):
         'DW_TAG_unspecified_type',
         'DW_TAG_shared_type',
         'DW_TAG_rvalue_reference_type',
+        'DW_TAG_typedef',
     )
 
     @property
