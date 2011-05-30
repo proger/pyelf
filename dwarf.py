@@ -56,6 +56,14 @@ class Struct(Type):
         'DW_TAG_union_type',
     )
 
+    @property
+    def members(self):
+        # (offset, name)    # TODO: type
+        return [
+            (c.attributes['DW_AT_data_member_location'][1], c.name)
+            for c in filter(lambda c: c.tag == 'DW_TAG_member', self.die.children)
+        ]
+
 types = (Type, Struct)
 tagindex = reduce(lambda d, ty: dict(d.items() + [(t, ty) for t in ty.tags]), types, {})
 
