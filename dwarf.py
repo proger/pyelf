@@ -59,9 +59,11 @@ class Struct(Type):
 
     @property
     def members(self):
-        # (offset, name)    # TODO: type
+        # (offset, type, name)
         return [
-            (c.attributes['DW_AT_data_member_location'][1], c.name)
+            (c.attributes['DW_AT_data_member_location'][1],
+                objectify(c.attributes['DW_AT_type'][1]),
+                c.name)
             for c in filter(lambda c: c.tag == 'DW_TAG_member', self.die.children)
         ]
 
