@@ -74,14 +74,28 @@ cdef class Dwarf:
             self._cu_context._cu = self._cu_context
 
             ret = callback(self, self._cu_context)
-            if not ret:
-                return self._cu_context
+            if ret is not None:
+                return ret
 
         self._cu_context = None
 
+    def die_foreach(self, callback):
+        def dietraverse(die, callback, level=0):
+            cbret = callback(die, level)
+            if cbret is not None:
+                return cbret
+
+            for child in die.children:
+                ret = dietraverse(child, callback, level + 1)
+                if ret is not None:
+                    return ret
+
+        return self.cu_foreach(lambda dw, cu: dietraverse(cu, callback))
+
+
     def cu_rewind(self, cu):
         cdef DIE ccu = <DIE>cu
-        test = lambda dw, x: not <DIE>cu == <DIE>x
+        test = lambda dw, x: cu if <DIE>cu == <DIE>x else None
 
         if <DIE>self.cu_foreach(test) == <DIE>cu:
             return True
@@ -93,7 +107,7 @@ cdef class Dwarf:
 
     def cu(self):
         cdef list culist = []
-        self.cu_foreach(lambda dw, x: culist.append(x) or True)
+        self.cu_foreach(lambda dw, x: culist.append(x))
         return culist
 
     cdef die_context_prepare(self, DIE die):
