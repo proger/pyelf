@@ -180,10 +180,16 @@ cdef class DIE:
 
             return tagname if tagname else 'unknown tag %d' % tag
 
+    property name:
+        def __get__(self):
+            cdef char *name = NULL
+            dwarf_diename(self._die, &name, NULL)
+            return name if name else ''
+
     property offset:
         def __get__(self):
             return self._offset
 
     def __repr__(self):
         assert bool(self), 'NULL DIE'
-        return '<DIE: %s (offset %d)>' % (self.tag, self.offset)
+        return '<DIE: %s %s (offset %d)>' % (self.tag, self.name, self.offset)
