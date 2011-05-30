@@ -121,10 +121,8 @@ cdef extern from "libdwarf/libdwarf.h":
 
     # offset by die
     int dwarf_dieoffset(Dwarf_Die, Dwarf_Off *, Dwarf_Error *)
-
     # die by offset
     int dwarf_offdie(Dwarf_Debug, Dwarf_Off, Dwarf_Die *, Dwarf_Error *)
-
 
 cdef enum:
     DW_FORM_addr         = 0x01
