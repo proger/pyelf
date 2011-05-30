@@ -92,7 +92,6 @@ cdef class Dwarf:
 
         return self.cu_foreach(lambda dw, cu: dietraverse(cu, callback))
 
-
     def cu_rewind(self, cu):
         cdef DIE ccu = <DIE>cu
         test = lambda dw, x: cu if <DIE>cu == <DIE>x else None
@@ -151,7 +150,7 @@ cdef class DIE:
     cdef Dwarf_Die _die     # volatile across CU context changes
     cdef Dwarf _dwarf
     cdef Dwarf_Off _offset  # stable -- offset to section base
-    cdef DIE _cu         # topmost parent DIE
+    cdef DIE _cu            # topmost parent DIE
 
     def __cinit__(self):
         self._dwarf = None
@@ -211,17 +210,19 @@ cdef class DIE:
 
             dwarf_attrlist(self._die, &attrp, &nattrs, NULL)
 
-            return list(self.attribute(attrp[i]) for i in xrange(nattrs))
+            return dict([self.attribute(attrp[i]) for i in xrange(nattrs)])
 
     property offset:
         def __get__(self):
             return self._offset
 
-    cdef object attrval(self, Dwarf_Half attr, Dwarf_Half form):
+    cdef object attrval(self, Dwarf_Attribute a, Dwarf_Half attr, Dwarf_Half form):
         cdef Dwarf_Bool _bool
         cdef Dwarf_Signed _signed
         cdef const_char_ptr _str
         cdef Dwarf_Unsigned _unsigned
+        cdef Dwarf_Locdesc *ldbuf = NULL
+        cdef Dwarf_Signed ldlen = -1
 
         if form == DW_FORM_flag:
             dwarf_attrval_flag(self._die, attr, &_bool, NULL)
@@ -241,6 +242,16 @@ cdef class DIE:
             dwarf_attrval_unsigned(self._die, attr, &_unsigned, NULL)
             return _unsigned
 
+        elif form in (DW_FORM_block, DW_FORM_block1, DW_FORM_block2,
+                DW_FORM_block4) and attr in (DW_AT_data_member_location, ):
+            # block contains a dwarf expression which will be interpreted
+
+            dwarf_loclist(a, &ldbuf, &ldlen, NULL)
+            assert ldlen == 1, 'expected single location, got %d' % ldlen
+            assert ldbuf.ld_s.lr_number2 == 0, 'wtf? lr_number2 = %d (read the spec already)' % ldbuf.ld_s.lr_number2
+
+            return ldbuf.ld_s.lr_number
+
     cdef attribute(self, Dwarf_Attribute a):
         cdef Dwarf_Half attr
         cdef const_char_ptr name = NULL
@@ -253,4 +264,4 @@ cdef class DIE:
         dwarf_whatform(a, &form, NULL)
         dwarf_get_FORM_name(form, &formname)
 
-        return (name, formname, self.attrval(attr, form))
+        return (name, (formname, self.attrval(a, attr, form)))
