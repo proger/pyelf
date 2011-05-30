@@ -124,6 +124,8 @@ cdef extern from "libdwarf/libdwarf.h":
     # die by offset
     int dwarf_offdie(Dwarf_Debug, Dwarf_Off, Dwarf_Die *, Dwarf_Error *)
 
+    int	dwarf_global_formref(Dwarf_Attribute, Dwarf_Off *, Dwarf_Error *)
+
     ctypedef struct Dwarf_Loc:
         Dwarf_Small lr_atom
         Dwarf_Unsigned lr_number

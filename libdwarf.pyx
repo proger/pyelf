@@ -223,6 +223,7 @@ cdef class DIE:
         cdef Dwarf_Unsigned _unsigned
         cdef Dwarf_Locdesc *ldbuf = NULL
         cdef Dwarf_Signed ldlen = -1
+        cdef Dwarf_Off _offset
 
         if form == DW_FORM_flag:
             dwarf_attrval_flag(self._die, attr, &_bool, NULL)
@@ -236,11 +237,22 @@ cdef class DIE:
             dwarf_attrval_string(self._die, attr, &_str, NULL)
             return _str
 
-        elif form in (DW_FORM_addr, DW_FORM_ref_udata, DW_FORM_udata,
-                DW_FORM_data1, DW_FORM_data2, DW_FORM_data4, DW_FORM_data8,
-                DW_FORM_ref1, DW_FORM_ref2, DW_FORM_ref4, DW_FORM_ref8):
+        elif form in (DW_FORM_addr, DW_FORM_udata,
+                DW_FORM_data1, DW_FORM_data2, DW_FORM_data4, DW_FORM_data8):
             dwarf_attrval_unsigned(self._die, attr, &_unsigned, NULL)
             return _unsigned
+
+        elif form in (DW_FORM_ref_udata,
+                DW_FORM_ref1, DW_FORM_ref2, DW_FORM_ref4, DW_FORM_ref8):
+            dwarf_global_formref(a, &_offset, NULL)
+
+            d = DIE()
+            d._offset = _offset
+            d._dwarf = self._dwarf
+            d._cu = self._cu
+            self._dwarf.die_context_prepare(d)
+
+            return d
 
         elif form in (DW_FORM_block, DW_FORM_block1, DW_FORM_block2,
                 DW_FORM_block4) and attr in (DW_AT_data_member_location, ):
