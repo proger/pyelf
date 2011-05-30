@@ -144,6 +144,10 @@ cdef class DIE:
         self._die = NULL
         self._cu = None
 
+    def __repr__(self):
+        assert bool(self), 'NULL DIE'
+        return '<DIE: %s %s +%d>' % (self.tag, self.name, self.offset)
+
     def __bool__(self):
         return self._die != NULL
 
@@ -186,10 +190,53 @@ cdef class DIE:
             dwarf_diename(self._die, &name, NULL)
             return name if name else ''
 
+    property attributes:
+        def __get__(self):
+            cdef Dwarf_Signed nattrs
+            cdef Dwarf_Attribute *attrp
+
+            dwarf_attrlist(self._die, &attrp, &nattrs, NULL)
+
+            return list(self.attribute(attrp[i]) for i in xrange(nattrs))
+
     property offset:
         def __get__(self):
             return self._offset
 
-    def __repr__(self):
-        assert bool(self), 'NULL DIE'
-        return '<DIE: %s %s (offset %d)>' % (self.tag, self.name, self.offset)
+    cdef object attrval(self, Dwarf_Half attr, Dwarf_Half form):
+        cdef Dwarf_Bool _bool
+        cdef Dwarf_Signed _signed
+        cdef const_char_ptr _str
+        cdef Dwarf_Unsigned _unsigned
+
+        if form == DW_FORM_flag:
+            dwarf_attrval_flag(self._die, attr, &_bool, NULL)
+            return _bool
+
+        elif form == DW_FORM_sdata:
+            dwarf_attrval_signed(self._die, attr, &_signed, NULL)
+            return _signed
+
+        elif form in (DW_FORM_string, DW_FORM_strp):
+            dwarf_attrval_string(self._die, attr, &_str, NULL)
+            return _str
+
+        elif form in (DW_FORM_addr, DW_FORM_ref_udata, DW_FORM_udata,
+                DW_FORM_data1, DW_FORM_data2, DW_FORM_data4, DW_FORM_data8,
+                DW_FORM_ref1, DW_FORM_ref2, DW_FORM_ref4, DW_FORM_ref8):
+            dwarf_attrval_unsigned(self._die, attr, &_unsigned, NULL)
+            return _unsigned
+
+    cdef attribute(self, Dwarf_Attribute a):
+        cdef Dwarf_Half attr
+        cdef const_char_ptr name = NULL
+        cdef Dwarf_Half form
+        cdef const_char_ptr formname = NULL
+
+        dwarf_whatattr(a, &attr, NULL)
+        dwarf_get_AT_name(attr, &name)
+
+        dwarf_whatform(a, &form, NULL)
+        dwarf_get_FORM_name(form, &formname)
+
+        return (name, formname, self.attrval(attr, form))
