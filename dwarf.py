@@ -49,7 +49,7 @@ class Type(DwarfObject):
 
     @property
     def size(self):
-        return
+        return self.die.attributes['DW_AT_byte_size'][1]
 
 class Struct(Type):
     tags = (
