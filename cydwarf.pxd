@@ -13,7 +13,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from libc.stdint cimport *
-from libelf cimport *
+from cyelf cimport *
 
 cdef extern from *:
     ctypedef char * const_char_ptr "const char *"

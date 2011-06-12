@@ -13,7 +13,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import sys
-import libdwarf
+import cydwarf
 
 class DwarfObject(object):
     def __init__(self, die):
@@ -81,4 +81,4 @@ def locatebyname(dwarf, name):
 
 if __name__ == '__main__':
     import os
-    dw = libdwarf.Dwarf(os.open('/home/proger/dev/cwm/obj/cwm', 0))
+    dw = cydwarf.Dwarf(os.open('/home/proger/dev/cwm/obj/cwm', 0))

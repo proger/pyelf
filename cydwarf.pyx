@@ -13,8 +13,8 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from libc.stdint cimport *
-from libelf cimport *
-from libdwarf cimport *
+from cyelf cimport *
+from cydwarf cimport *
 
 # Results of calling dwarf_siblingof() depend on the internal
 # state of libdwarf: you always have to 'rewind' the library

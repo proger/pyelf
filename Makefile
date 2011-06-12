@@ -1,12 +1,12 @@
-ELFTOOLCHAIN?=	${HOME}/dev/elftoolchain/trunk
+ELFTOOLCHAIN?=	${HOME}/dev/elftoolchain
 
-PYLIB=		libdwarf.so
+PYLIB=		cydwarf.so
 
 # python module sources
 CYTHON?=	cython --fast-fail
 CYFLAGS=	-I${ELFTOOLCHAIN} -I${.CURDIR}
 
-CYSRC=		libdwarf.pyx
+CYSRC=		cydwarf.pyx
 CYOUT=		${CYSRC:S/.pyx/.c/g}
 
 # python libraries
@@ -19,17 +19,17 @@ PATHS=	${ELFTOOLCHAIN}			\
 	${ELFTOOLCHAIN}/libelf		\
 	${ELFTOOLCHAIN}/libdwarf
 
-LDFLAGS=	-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -lpython2.7
+LDFLAGS=	-lpython2.7
 .for p in ${PATHS}
 LDFLAGS+=	-Wl,-rpath,$p/obj -L$p/obj
 .endfor
 
-CPPFLAGS=	-I/usr/pkg/include/python2.7
+CPPFLAGS=	-I/usr/include/python2.7
 .for p in ${PATHS}
 CPPFLAGS+=	-I$p
 .endfor
 
-LDADD=		-lpython2.7 -lelf -ldwarf
+LDADD=		-lpython2.7 -lelf -ldwarf -lc
 
 COBJ=		${CYOUT:S/.c/.o/g}
 
