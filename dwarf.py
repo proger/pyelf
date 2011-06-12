@@ -15,6 +15,8 @@
 import sys
 import cydwarf
 
+from propcache import cached_property
+
 class DwarfObject(object):
     def __init__(self, die):
         self.die = die
@@ -57,7 +59,7 @@ class Struct(Type):
         'DW_TAG_union_type',
     )
 
-    @property
+    @cached_property
     def members(self):
         # (offset, type, name)
         return [
