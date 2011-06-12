@@ -121,7 +121,8 @@ cdef class Dwarf:
     cdef object retwrap(self, Dwarf_Die obj, int ret, Dwarf_Error err):
         if ret == DW_DLV_NO_ENTRY:
             return None
-        elif ret != DW_DLV_OK:
+        #elif ret != DW_DLV_OK:
+        elif ret != DW_DLV_OK and ret != 4: #  XXXWTF
             raise ValueError(_dwarf_errmsg(&err))
         return die_wrap(self, obj, self._cu_context)
 
