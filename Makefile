@@ -1,4 +1,4 @@
-ELFTOOLCHAIN?=	${HOME}/dev/elftoolchain
+ELFTOOLCHAIN?=	${HOME}/dev/inspect/toolchain
 
 PYLIB=		cydwarf.so
 
@@ -12,14 +12,15 @@ CYOUT=		${CYSRC:S/.pyx/.c/g}
 # python libraries
 CC?=		cc
 
-CFLAGS=		-g -fPIC
+CFLAGS=		-g -fPIC -Wall
 
 PATHS=	${ELFTOOLCHAIN}			\
 	${ELFTOOLCHAIN}/common		\
 	${ELFTOOLCHAIN}/libelf		\
 	${ELFTOOLCHAIN}/libdwarf
 
-LDFLAGS=	-lpython2.7
+#LDFLAGS=	-lpython2.7
+LDFLAGS=
 .for p in ${PATHS}
 LDFLAGS+=	-Wl,-rpath,$p/obj -L$p/obj
 .endfor
@@ -29,7 +30,7 @@ CPPFLAGS=	-I/usr/include/python2.7
 CPPFLAGS+=	-I$p
 .endfor
 
-LDADD=		-lpython2.7 -lelf -ldwarf -lc
+LDADD=		-lpython2.7 -lelf -ldwarf
 
 COBJ=		${CYOUT:S/.c/.o/g}
 
