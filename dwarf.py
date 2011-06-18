@@ -15,8 +15,6 @@
 import sys
 import cydwarf
 
-from propcache import cached_property
-
 class DwarfObject(object):
     def __init__(self, die):
         self.die = die
