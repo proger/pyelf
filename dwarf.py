@@ -29,7 +29,6 @@ class Type(DwarfObject):
         'DW_TAG_array_type',
         'DW_TAG_class_type',
         'DW_TAG_enumeration_type',
-        'DW_TAG_pointer_type',
         'DW_TAG_reference_type',
         'DW_TAG_string_type',
         'DW_TAG_subroutine_type',
@@ -40,8 +39,6 @@ class Type(DwarfObject):
         'DW_TAG_const_type',
         'DW_TAG_packed_type',
         'DW_TAG_thrown_type',
-        'DW_TAG_volatile_type',
-        'DW_TAG_restrict_type',
         'DW_TAG_interface_type',
         'DW_TAG_unspecified_type',
         'DW_TAG_shared_type',
@@ -50,8 +47,44 @@ class Type(DwarfObject):
     )
 
     @property
+    def real(self):
+        return self
+
+    @property
+    def name(self):
+        return self.die.name
+
+    @property
     def size(self):
         return self.die.attributes['DW_AT_byte_size'][1]
+
+class ConcealedType(Type):
+    tags = (
+        'DW_TAG_volatile_type',
+        'DW_TAG_restrict_type',
+    )
+
+    @property
+    def real(self):
+        return objectify(self.die.attributes['DW_AT_type'][1])
+
+class PointerType(Type):
+    tags = (
+        'DW_TAG_pointer_type',
+    )
+
+    @property
+    def name(self):
+        return 'void *'
+
+class ArrayType(Type):
+    tags = (
+        'DW_TAG_array_type',
+    )
+
+    @property
+    def size(self):
+        return self.die.children[0].attributes['DW_AT_upper_bound'][1] + 1
 
 class Struct(Type):
     tags = (
@@ -59,17 +92,24 @@ class Struct(Type):
         'DW_TAG_union_type',
     )
 
-    @cached_property
+    def __init__(self, *args, **kw):
+        super(Struct, self).__init__(*args, **kw)
+        self._members_dict = dict((name, (type, offset)) for offset, type, name in self.members)
+
+    @property
     def members(self):
         # (offset, type, name)
         return [
             (c.attributes['DW_AT_data_member_location'][1],
-                objectify(c.attributes['DW_AT_type'][1]),
+                objectify(c.attributes['DW_AT_type'][1]).real,
                 c.name)
             for c in filter(lambda c: c.tag == 'DW_TAG_member', self.die.children)
         ]
 
-types = (Type, Struct)
+    def member(self, name):
+        return self._members_dict.get(name)
+
+types = (Type, ConcealedType, PointerType, ArrayType, Struct)
 tagindex = reduce(lambda d, ty: dict(d.items() + [(t, ty) for t in ty.tags]), types, {})
 
 objectify = lambda die: tagindex.get(die.tag, DwarfObject)(die)
@@ -80,6 +120,14 @@ def dieprint(die, level):
 def locatebyname(dwarf, name):
     match = dwarf.die_foreach(lambda die, level: die if die.name == name else None)
     return objectify(match) if match else None
+
+def locateallbyname(dwarf, name):
+    matches = []
+    def collect(die, level):
+        if die.name == name:
+            matches.append(die)
+    dwarf.die_foreach(collect)
+    return map(objectify, matches)
 
 if __name__ == '__main__':
     import os
